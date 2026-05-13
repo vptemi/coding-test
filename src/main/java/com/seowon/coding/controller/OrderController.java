@@ -1,7 +1,11 @@
 package com.seowon.coding.controller;
 
 import com.seowon.coding.domain.model.Order;
+import com.seowon.coding.service.OrderProduct;
 import com.seowon.coding.service.OrderService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,5 +70,30 @@ public class OrderController {
      *   ]
      * }
      */
-    //
+
+    /*
+    #SOLVE2 주문생성
+     */
+    public ResponseEntity<Order> createOrder(@RequestBody CreateOrderRequest createOrderRequest) {
+        List<Long> productIds = createOrderRequest.getProducts().stream().map(OrderProduct::getProductId).toList();
+        List<Integer> quantities =  createOrderRequest.getProducts().stream().map(OrderProduct::getQuantity).toList();
+
+        Order order = orderService.placeOrder(createOrderRequest.getCustomerName(), createOrderRequest.getCustomerEmail(), productIds, quantities);
+        //  CREATED 정의된 201 리턴되도록 함.
+        return ResponseEntity.status(HttpStatus.CREATED).body(order);
+
+    }
+
+
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public class CreateOrderRequest {
+        private String customerName;
+        private String customerEmail;
+        private List<OrderProduct> products;
+    }
+
+
 }
