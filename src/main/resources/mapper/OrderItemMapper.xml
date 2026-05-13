@@ -29,5 +29,11 @@
     <!--
         TODO #3: insertBatch (foreach 일괄 INSERT)
     -->
-
+    <insert id="insertBatch"  useGeneratedKeys="true" parameterType="java.util.List">
+        INSERT INTO order_item(order_id, product_id, quantity, price)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.order_id}, #{item.product_id}, #{item.quantity},#{item.price})
+        </foreach>
+    </insert>
 </mapper>
