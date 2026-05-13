@@ -21,5 +21,5 @@ public interface OrderItemMapper {
     List<OrderItem> findByOrderId(@Param("orderId") Long orderId);
 
     // TODO #3: 일괄 INSERT
-    //   int insertBatch(@Param("items") List<OrderItem> items);
+    int insertBatch(@Param("items") List<OrderItem> items);
 }

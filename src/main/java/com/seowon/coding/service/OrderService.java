@@ -8,6 +8,7 @@ import com.seowon.coding.domain.repository.OrderRepository;
 import com.seowon.coding.domain.repository.ProcessingStatusRepository;
 import com.seowon.coding.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -67,8 +69,41 @@ public class OrderService {
      * 각 Product 의 재고를 수정 (변경 감지로 자동 반영)
      * placeOrder 메소드의 시그니처는 변경하지 않은 채 구현하세요.
      */
+    @Transactional
     public Order placeOrder(String customerName, String customerEmail, List<Long> productIds, List<Integer> quantities) {
-        return null;
+        if(customerName == null || customerName.isBlank()) {
+            throw new IllegalArgumentException("customerName is required");
+        }
+        if(customerEmail == null || customerEmail.isBlank()) {
+            throw new IllegalArgumentException("customerEmail is required");
+        }
+        if(productIds == null || quantities == null || productIds.size() != quantities.size()) {
+            throw new IllegalArgumentException("Invalid order requst");
+        }
+
+        Order order = Order.builder().customerName(customerName).customerEmail(customerEmail)
+                .status(Order.OrderStatus.PENDING)
+                .orderDate(LocalDateTime.now())
+                .items(new ArrayList<>())
+                .totalAmount(BigDecimal.ZERO)
+                .build();
+
+        for(int i = 0; i < productIds.size(); i++) {
+            Long productId = productIds.get(i);
+            int quantity = quantities.get(i);
+
+            if(quantity <= 0) {
+                throw new IllegalArgumentException("Invalid quantity");
+            }
+
+            Product product = productRepository.findById(productId).orElseThrow(()->  new IllegalArgumentException("Product not found with id: " + productId));
+            product.decreaseStock(quantity);
+            OrderItem item = OrderItem.builder().order(order).product(product).quantity(quantity).build();
+
+            order.addItem(item);
+        }
+        return orderRepository.save(order);
+        //return null;
     }
 
     /**
