@@ -55,7 +55,11 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public List<Product> findProductsByCategory(String category) {
-        return List.of();
+        //#1 SOLVE : findByCategory 를 사용하여 리턴..[JPA]
+        if(category == null || category.isBlank() ) {
+            return List.of();
+        }
+        return productRepository.findByCategory(category);
     }
 
     /**
